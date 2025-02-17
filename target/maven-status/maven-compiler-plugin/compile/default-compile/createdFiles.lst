@@ -1,0 +1,14 @@
+com\example\blog\entity\Weather.class
+com\example\blog\entity\WeatherType.class
+com\example\blog\entity\Essay.class
+com\example\blog\entity\Post.class
+com\example\blog\entity\Album.class
+com\example\blog\BlogApplication.class
+com\example\blog\entity\FriendCategory.class
+com\example\blog\repository\PostRepository.class
+com\example\blog\controller\PostController.class
+com\example\blog\entity\AlbumImage.class
+com\example\blog\service\PostService.class
+com\example\blog\entity\Article.class
+com\example\blog\entity\FriendLink.class
+com\example\blog\entity\Comment.class
