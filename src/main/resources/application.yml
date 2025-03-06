@@ -15,3 +15,41 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect 
+
+  mail:
+    host: smtp.exmail.qq.com
+    port: 465
+    username: danny@dannysummer.asia
+    password: eNfwdGZMihb6Cf9T
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+            trust: smtp.exmail.qq.com
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            port: 465
+          timeout: 25000
+          connectiontimeout: 25000
+          writetimeout: 25000
+
+  mvc:
+    cors:
+      allowed-origins: http://localhost:5173
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+jwt:
+  secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437  # 至少32字节的密钥
+  expiration: 5400000  # 90分钟 = 90 * 60 * 1000 毫秒
+
+app:
+  email:
+    verification:
+      enabled: false  # 设置为true开启邮箱验证，false关闭 
