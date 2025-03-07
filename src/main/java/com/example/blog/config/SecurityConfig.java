@@ -88,11 +88,15 @@ public class SecurityConfig {
                         "/api/friend-links",
                         "/api/friend-links/all",
                         "/api/friend-links/category/**",
+                        "/api/bullet-chats",
+                        "/api/bullet-chats/{id}",
+                        "/api/bullet-chats/status/**",
                         "/error"
                     ).permitAll()
                     .requestMatchers(
                         "/api/friend-links-pending",
-                        "/api/friend-links-pending/**"
+                        "/api/friend-links-pending/**",
+                        "/api/bullet-chats/{id}/**"
                     ).hasRole("ADMIN")
                     .anyRequest().authenticated();
             })

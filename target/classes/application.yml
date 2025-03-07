@@ -11,10 +11,22 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect 
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # 设置文件编码
+  mandatory-file-encoding: UTF-8
+  
+  # 设置HTTP编码
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
   mail:
     host: smtp.exmail.qq.com
@@ -45,6 +57,14 @@ spring:
       allow-credentials: true
       max-age: 3600
 
+# 日志配置
+logging:
+  charset:
+    console: GBK
+    file: UTF-8
+  file:
+    name: logs/blog.log
+
 jwt:
   secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437  # 至少32字节的密钥
   expiration: 5400000  # 90分钟 = 90 * 60 * 1000 毫秒
@@ -53,3 +73,6 @@ app:
   email:
     verification:
       enabled: false  # 设置为true开启邮箱验证，false关闭 
+  sensitive-word:
+    enabled: true     # 是否启用敏感词过滤
+    file-path: classpath:sensitive-words.txt  # 敏感词库文件路径
