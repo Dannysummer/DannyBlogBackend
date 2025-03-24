@@ -1,6 +1,7 @@
 package com.example.blog.service;
 
 import com.example.blog.entity.BulletChat;
+import com.example.blog.entity.BulletChatStatus;
 import com.example.blog.repository.BulletChatRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ public class BulletChatService {
         return bulletChatRepository.findByOrderByCreateTimeDesc();
     }
     
-    public List<BulletChat> getBulletChatsByStatus(String status) {
+    public List<BulletChat> getBulletChatsByStatus(BulletChatStatus status) {
         return bulletChatRepository.findByStatus(status);
     }
     
@@ -45,7 +46,10 @@ public class BulletChatService {
         // 设置过滤后的内容
         bulletChat.setContent(filteredContent);
         
-        // 由@PrePersist自动设置createTime和status
+        // 设置状态为待审核
+        bulletChat.setStatus(BulletChatStatus.PENDING);
+        
+        // 由@PrePersist自动设置createTime
         logger.info("正在保存新弹幕: {}", bulletChat.getContent());
         return bulletChatRepository.save(bulletChat);
     }
@@ -66,6 +70,18 @@ public class BulletChatService {
         }
         
         return bulletChatRepository.save(existingBulletChat);
+    }
+    
+    public BulletChat approveBulletChat(Integer id) {
+        BulletChat bulletChat = getBulletChatById(id);
+        bulletChat.setStatus(BulletChatStatus.APPROVED);
+        return bulletChatRepository.save(bulletChat);
+    }
+    
+    public BulletChat rejectBulletChat(Integer id) {
+        BulletChat bulletChat = getBulletChatById(id);
+        bulletChat.setStatus(BulletChatStatus.REJECTED);
+        return bulletChatRepository.save(bulletChat);
     }
     
     public void deleteBulletChat(Integer id) {

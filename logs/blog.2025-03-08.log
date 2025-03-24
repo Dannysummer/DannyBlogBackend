@@ -1,0 +1,85 @@
+2025-03-08 03:01:19.097 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=5h58m24s204ms287µs900ns).
+2025-03-08 10:53:18.628 [main] INFO  com.example.blog.BlogApplication - Starting BlogApplication using Java 21.0.6 with PID 1432 (D:\文件\MyBlog\DanselaBack\target\classes started by 17804 in D:\文件\MyBlog\DanselaBack)
+2025-03-08 10:53:18.629 [main] INFO  com.example.blog.BlogApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-08 10:53:19.011 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-08 10:53:19.066 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 48 ms. Found 5 JPA repository interfaces.
+2025-03-08 10:53:19.520 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8088 (http)
+2025-03-08 10:53:19.531 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8088"]
+2025-03-08 10:53:19.535 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-08 10:53:19.536 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.15]
+2025-03-08 10:53:19.668 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-08 10:53:19.669 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1010 ms
+2025-03-08 10:53:19.820 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-08 10:53:19.844 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.2.13.Final
+2025-03-08 10:53:19.845 [main] INFO  org.hibernate.cfg.Environment - HHH000406: Using bytecode reflection optimizer
+2025-03-08 10:53:20.011 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-03-08 10:53:20.023 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-08 10:53:20.180 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@2404abe2
+2025-03-08 10:53:20.181 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-08 10:53:20.216 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-03-08 10:53:20.701 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-03-08 10:53:20.751 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-08 10:53:21.114 [main] INFO  c.e.b.service.SensitiveWordService - 敏感词过滤服务初始化完成
+2025-03-08 10:53:21.206 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-08 10:53:21.222 [main] WARN  o.s.b.a.s.s.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 445f0078-ae75-48e4-a49c-6033735ca448
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-03-08 10:53:21.316 [main] INFO  c.example.blog.config.SecurityConfig - 正在配置安全过滤链...
+2025-03-08 10:53:21.316 [main] INFO  c.example.blog.config.SecurityConfig - 配置CORS...
+2025-03-08 10:53:21.323 [main] INFO  c.example.blog.config.SecurityConfig - 禁用CSRF保护...
+2025-03-08 10:53:21.326 [main] INFO  c.example.blog.config.SecurityConfig - 配置URL访问权限...
+2025-03-08 10:53:21.326 [main] INFO  c.example.blog.config.SecurityConfig - 设置以下路径允许匿名访问: /api/auth/*, /api/friend-links/*
+2025-03-08 10:53:21.443 [main] INFO  c.example.blog.config.SecurityConfig - 配置异常处理...
+2025-03-08 10:53:21.444 [main] INFO  c.example.blog.config.SecurityConfig - 配置会话管理为无状态...
+2025-03-08 10:53:21.445 [main] INFO  c.example.blog.config.SecurityConfig - 安全过滤链配置完成
+2025-03-08 10:53:21.466 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@403f6c04, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@2693e39c, org.springframework.security.web.context.SecurityContextHolderFilter@77587422, org.springframework.security.web.header.HeaderWriterFilter@3e79473d, org.springframework.web.filter.CorsFilter@4bbabec8, org.springframework.security.web.authentication.logout.LogoutFilter@3f523dae, com.example.blog.config.JwtAuthenticationFilter@1043c493, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@5c94d4b8, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@308d8de8, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@2b27d5d3, org.springframework.security.web.session.SessionManagementFilter@298cfe89, org.springframework.security.web.access.ExceptionTranslationFilter@3c89fdd8, org.springframework.security.web.access.intercept.AuthorizationFilter@6020cd42]
+2025-03-08 10:53:21.565 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8088"]
+2025-03-08 10:53:21.579 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8088 (http) with context path ''
+2025-03-08 10:53:21.583 [main] INFO  com.example.blog.BlogApplication - Started BlogApplication in 3.253 seconds (process running for 3.618)
+2025-03-08 10:57:47.338 [http-nio-8088-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-08 10:57:47.338 [http-nio-8088-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-08 10:57:47.339 [http-nio-8088-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-08 10:57:47.399 [http-nio-8088-exec-1] INFO  c.e.b.c.FriendLinkController - 收到获取所有友链的请求（管理员）
+2025-03-08 10:57:47.400 [http-nio-8088-exec-1] INFO  c.e.blog.service.FriendLinkService - 从数据库获取所有友链
+2025-03-08 10:57:47.461 [http-nio-8088-exec-1] INFO  c.e.blog.service.FriendLinkService - 成功获取所有友链，共8条
+2025-03-08 10:57:47.462 [http-nio-8088-exec-1] INFO  c.e.b.c.FriendLinkController - 成功获取所有友链，共8条
+2025-03-08 10:57:47.496 [http-nio-8088-exec-2] WARN  c.e.blog.config.SecurityConfig$1 - 未授权访问: /api/friend-links/pending, 错误: Full authentication is required to access this resource
+2025-03-08 10:57:49.248 [http-nio-8088-exec-4] WARN  c.e.blog.config.SecurityConfig$1 - 未授权访问: /api/auth/check-token, 错误: Full authentication is required to access this resource
+2025-03-08 10:58:20.367 [http-nio-8088-exec-10] INFO  c.example.blog.service.AuthService - 验证码发送成功: email=1780468580@qq.com, code=076333, type=admin_verify
+2025-03-08 10:59:08.735 [http-nio-8088-exec-3] INFO  c.e.b.c.FriendLinkController - 收到获取所有友链的请求（管理员）
+2025-03-08 10:59:08.736 [http-nio-8088-exec-3] INFO  c.e.blog.service.FriendLinkService - 从数据库获取所有友链
+2025-03-08 10:59:08.744 [http-nio-8088-exec-3] INFO  c.e.blog.service.FriendLinkService - 成功获取所有友链，共8条
+2025-03-08 10:59:08.745 [http-nio-8088-exec-3] INFO  c.e.b.c.FriendLinkController - 成功获取所有友链，共8条
+2025-03-08 10:59:08.760 [http-nio-8088-exec-4] INFO  c.e.b.c.FriendLinkController - 收到获取待审核友链的请求
+2025-03-08 10:59:08.761 [http-nio-8088-exec-4] INFO  c.e.blog.service.FriendLinkService - 获取所有待审核友链
+2025-03-08 10:59:08.780 [http-nio-8088-exec-4] INFO  c.e.b.c.FriendLinkController - 成功获取待审核友链，共5条
+2025-03-08 10:59:29.772 [http-nio-8088-exec-8] INFO  c.e.b.c.BulletChatController - 成功获取所有弹幕，共8条
+2025-03-08 10:59:32.771 [http-nio-8088-exec-3] INFO  c.e.b.c.BulletChatController - 成功获取所有弹幕，共8条
+2025-03-08 11:04:37.935 [http-nio-8088-exec-7] WARN  o.s.w.s.m.s.DefaultHandlerExceptionResolver - Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'com.example.blog.entity.BulletChatStatus'; Failed to convert from type [java.lang.String] to type [@org.springframework.web.bind.annotation.PathVariable com.example.blog.entity.BulletChatStatus] for value [active]]
+2025-03-08 11:07:31.092 [http-nio-8088-exec-9] INFO  c.e.b.c.BulletChatController - 成功获取状态为APPROVED的弹幕，共6条
+2025-03-08 11:08:43.644 [http-nio-8088-exec-3] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：28
+2025-03-08 11:08:49.068 [http-nio-8088-exec-5] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：30
+2025-03-08 11:08:53.605 [http-nio-8088-exec-7] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：31
+2025-03-08 11:08:57.094 [http-nio-8088-exec-1] INFO  c.e.b.c.BulletChatController - 成功获取所有弹幕，共8条
+2025-03-08 11:08:59.414 [http-nio-8088-exec-6] INFO  c.e.b.c.BulletChatController - 成功获取所有弹幕，共8条
+2025-03-08 11:09:02.864 [http-nio-8088-exec-1] INFO  c.e.b.c.BulletChatController - 成功获取所有弹幕，共8条
+2025-03-08 11:09:10.345 [http-nio-8088-exec-2] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：31
+2025-03-08 11:11:48.947 [http-nio-8088-exec-5] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：31
+2025-03-08 11:11:52.848 [http-nio-8088-exec-6] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：30
+2025-03-08 11:11:55.520 [http-nio-8088-exec-7] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：28
+2025-03-08 11:12:03.660 [http-nio-8088-exec-8] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：28
+2025-03-08 11:12:06.046 [http-nio-8088-exec-9] INFO  c.e.b.c.BulletChatController - 成功更新弹幕，ID：31
+2025-03-08 11:12:12.945 [http-nio-8088-exec-10] INFO  c.e.b.c.BulletChatController - 成功获取状态为APPROVED的弹幕，共8条
+2025-03-08 11:13:36.973 [http-nio-8088-exec-6] INFO  c.e.b.c.BulletChatController - 成功获取所有弹幕，共8条
+2025-03-08 11:13:40.394 [http-nio-8088-exec-1] INFO  c.e.b.c.BulletChatController - 成功获取所有弹幕，共8条
+2025-03-08 11:16:06.782 [http-nio-8088-exec-6] INFO  c.e.b.c.BulletChatController - 成功获取所有弹幕，共8条
+2025-03-08 15:51:15.663 [http-nio-8088-exec-5] INFO  c.e.b.c.BulletChatController - 成功获取状态为APPROVED的弹幕，共8条
+2025-03-08 17:50:35.977 [http-nio-8088-exec-1] WARN  c.e.blog.config.SecurityConfig$1 - 未授权访问: /api/auth/check-token, 错误: Full authentication is required to access this resource
+2025-03-08 17:50:35.990 [http-nio-8088-exec-2] WARN  c.e.blog.config.SecurityConfig$1 - 未授权访问: /api/auth/check-token, 错误: Full authentication is required to access this resource
+2025-03-08 17:50:36.018 [http-nio-8088-exec-3] WARN  c.e.blog.config.SecurityConfig$1 - 未授权访问: /api/auth/check-token, 错误: Full authentication is required to access this resource
+2025-03-08 17:50:37.142 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=2h30m42s488ms569µs300ns).
+2025-03-08 20:24:12.031 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=2h19m4s706ms69µs300ns).
+2025-03-08 22:12:11.407 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=6m57s696ms252µs200ns).

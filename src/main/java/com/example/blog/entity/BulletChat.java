@@ -22,8 +22,9 @@ public class BulletChat {
     @Column(name = "cratetime")
     private LocalDateTime createTime;
     
-    @Column(name = "status")
-    private String status;
+    @Column(nullable = false)
+    @Convert(converter = BulletChatStatusConverter.class)
+    private BulletChatStatus status = BulletChatStatus.PENDING;
     
     @PrePersist
     public void prePersist() {
@@ -31,7 +32,7 @@ public class BulletChat {
             createTime = LocalDateTime.now();
         }
         if (status == null) {
-            status = "active";
+            status = BulletChatStatus.PENDING;
         }
     }
 } 

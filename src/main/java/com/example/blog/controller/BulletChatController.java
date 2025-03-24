@@ -2,6 +2,7 @@ package com.example.blog.controller;
 
 import com.example.blog.dto.ApiResponse;
 import com.example.blog.entity.BulletChat;
+import com.example.blog.entity.BulletChatStatus;
 import com.example.blog.service.BulletChatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public class BulletChatController {
     }
     
     @GetMapping("/status/{status}")
-    public ResponseEntity<ApiResponse<?>> getBulletChatsByStatus(@PathVariable String status) {
+    public ResponseEntity<ApiResponse<?>> getBulletChatsByStatus(@PathVariable BulletChatStatus status) {
         try {
             List<BulletChat> bulletChats = bulletChatService.getBulletChatsByStatus(status);
             logger.info("成功获取状态为{}的弹幕，共{}条", status, bulletChats.size());

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.time.LocalDateTime;
+import com.example.blog.enums.UserStatus;
 
 @Service
 public class AuthService {
@@ -43,27 +44,66 @@ public class AuthService {
     
     // private Map<String, VerificationCode> loginVerificationCodes = new HashMap<>();
     
-    public ApiResponse<?> login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername());
-        if (user == null) {
-            return ApiResponse.error("用户不存在");
+    /**
+     * 用户登录
+     */
+    public ApiResponse<?> login(LoginRequest loginRequest) {
+        try {
+            User user = userRepository.findByUsername(loginRequest.getUsername());
+            
+            // 用户不存在
+            if (user == null) {
+                return ApiResponse.error("用户名或密码错误");
+            }
+            
+            // 检查用户状态
+            if (user.getStatus() == UserStatus.BANNED) {
+                logger.warn("用户已被封禁，禁止登录: username={}", loginRequest.getUsername());
+                return ApiResponse.error("您的账号已被封禁，请联系管理员");
+            }
+            
+            if (user.getStatus() == UserStatus.LOCKED) {
+                logger.warn("用户已被锁定，禁止登录: username={}", loginRequest.getUsername());
+                return ApiResponse.error("您的账号已被锁定，请联系管理员解锁");
+            }
+            
+            if (user.getStatus() == UserStatus.DELETED) {
+                logger.warn("用户已注销，禁止登录: username={}", loginRequest.getUsername());
+                return ApiResponse.error("该账号已被注销");
+            }
+            
+            if (user.getStatus() == UserStatus.PENDING) {
+                logger.warn("用户待审核，禁止登录: username={}", loginRequest.getUsername());
+                return ApiResponse.error("您的账号正在审核中，请耐心等待");
+            }
+            
+            // 验证密码
+            if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                return ApiResponse.error("用户名或密码错误");
+            }
+            
+            // 生成JWT令牌
+            String token = jwtUtil.generateToken(user);
+            
+            // 更新最后登录时间
+            user.setLastLoginTime(LocalDateTime.now());
+            userRepository.save(user);
+            
+            // 构建用户信息
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id", user.getId());
+            userInfo.put("username", user.getUsername());
+            userInfo.put("email", user.getEmail());
+            userInfo.put("role", user.getRole());
+            userInfo.put("avatar", user.getAvatar());
+            userInfo.put("token", token);
+            userInfo.put("status", user.getStatus());
+            
+            return ApiResponse.success(userInfo);
+        } catch (Exception e) {
+            logger.error("用户登录失败", e);
+            return ApiResponse.error("登录失败：" + e.getMessage());
         }
-        
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return ApiResponse.error("密码错误");
-        }
-        
-        // 生成 token
-        String token = generateToken(user);
-        // 设置 token 到响应中
-        ApiResponse<User> response = ApiResponse.success(user);
-        response.setToken(token);
-        
-        // 更新最后登录时间
-        user.setLastLoginTime(LocalDateTime.now());
-        userRepository.save(user);
-        
-        return response;
     }
     
     public ApiResponse<?> register(RegisterRequest request) {
@@ -245,5 +285,25 @@ public class AuthService {
     
     private String generateToken(User user) {
         return jwtUtil.generateToken(user);
+    }
+    
+    public ApiResponse<?> updateAvatar(String username, String avatarUrl) {
+        try {
+            // 查找用户
+            User user = userRepository.findByUsername(username);
+            if (user == null) {
+                return ApiResponse.error("用户不存在");
+            }
+            
+            // 更新头像URL
+            user.setAvatar(avatarUrl);
+            userRepository.save(user);
+            
+            logger.info("用户头像更新成功: username={}, avatarUrl={}", username, avatarUrl);
+            return ApiResponse.success("头像更新成功");
+        } catch (Exception e) {
+            logger.error("更新头像失败: ", e);
+            return ApiResponse.error("更新头像失败：" + e.getMessage());
+        }
     }
 } 

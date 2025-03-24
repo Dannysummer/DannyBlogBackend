@@ -1,5 +1,6 @@
 package com.example.blog.entity;
 
+import com.example.blog.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -23,6 +24,9 @@ public class User {
     @Column(length = 20)
     private String role;
     
+    @Column(length = 255)
+    private String avatar;
+    
     @Transient
     private String token;
     
@@ -30,8 +34,31 @@ public class User {
     
     private LocalDateTime lastLoginTime;
     
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private UserStatus status = UserStatus.NORMAL;
+    
+    private String phoneNumber;
+    
+    private String realName;
+    
+    private LocalDateTime updateTime;
+    
+    private String updatedBy;
+    
+    private String remark;
+    
     @PrePersist
     public void prePersist() {
         createTime = LocalDateTime.now();
+        updateTime = LocalDateTime.now();
+        if (status == null) {
+            status = UserStatus.NORMAL;
+        }
+    }
+    
+    @PreUpdate
+    public void preUpdate() {
+        updateTime = LocalDateTime.now();
     }
 } 
