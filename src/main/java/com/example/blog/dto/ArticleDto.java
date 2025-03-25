@@ -1,118 +1,109 @@
-package com.example.blog.entity;
+package com.example.blog.dto;
 
+import com.example.blog.entity.Article;
 import com.example.blog.enums.ArticleLicense;
 import com.example.blog.enums.ArticleStatus;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "articles")
-public class Article {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+/**
+ * 文章数据传输对象，用于控制返回给前端的字段
+ */
+public class ArticleDto {
     private Long id;
-    
-    @Column(nullable = false)
     private String title;
-    
-    @Column
     private Integer views;
-    
-    @Column
     private String cover;
-    
-    @Column(columnDefinition = "TEXT")
     private String content;
-    
-    @Column(columnDefinition = "TEXT")
     private String description;
-    
-    @Column(name = "ai_summary", columnDefinition = "TEXT")
-    private String aiSummary;
-    
-    @Column
+    private String aiSummary;  // 统一使用驼峰命名，与Entity保持一致
     private String category;
-    
-    @Column
     private String author;
-    
-    /**
-     * 从字符串转换为枚举的转换器
-     */
-    @Converter
-    public static class LicenseConverter implements AttributeConverter<ArticleLicense, String> {
-        @Override
-        public String convertToDatabaseColumn(ArticleLicense license) {
-            return license != null ? license.name() : null;
-        }
-        
-        @Override
-        public ArticleLicense convertToEntityAttribute(String dbData) {
-            if (dbData == null) {
-                return ArticleLicense.CC_BY_NC_SA_4_0; // 默认许可证
-            }
-            
-            // 尝试将数据库中的值直接转换为枚举名称
-            try {
-                return ArticleLicense.valueOf(dbData);
-            } catch (IllegalArgumentException e) {
-                // 如果失败，可能是旧格式的字符串，尝试通过code查找
-                return ArticleLicense.fromCode(dbData);
-            }
-        }
-    }
-    
-    @Column
-    @Enumerated(EnumType.STRING)
-    @Convert(converter = LicenseConverter.class)
-    private ArticleLicense license = ArticleLicense.CC_BY_NC_SA_4_0; // 默认使用CC BY-NC-SA 4.0
-    
-    @Column(name = "file_url", nullable = false)
+    private String license; // 保留字符串形式的许可证码
+    private String licenseDescription; // 许可证描述文本
     private String fileUrl;
-    
-    @Column(name = "file_path", nullable = false)
     private String filePath;
-    
-    @Column(name = "file_size", nullable = false)
     private Long fileSize;
-    
-    @Column(name = "file_type")
     private String fileType;
-
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private ArticleStatus status = ArticleStatus.DRAFT; // 默认为草稿状态
-    
-    @Column(name = "is_featured")
-    private Boolean isFeatured = false; // 是否为热门文章
-    
-    @Column(columnDefinition = "TEXT")
+    private String status; // 文章状态：PUBLISHED、DRAFT、DELETED
+    private Boolean isFeatured; // 是否为热门文章
     private String tags; // 使用\分隔的标签列表
+    private String[] tagArray; // 标签数组，便于前端使用
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-    
-    @Column(name = "created_at", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
     
-    @Column(name = "updated_at", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
-
+    
+    // 不返回用户全部信息，但可以返回用户ID
+    private Long userId;
+    
+    /**
+     * 从文章实体创建DTO
+     */
+    public static ArticleDto fromEntity(Article article) {
+        ArticleDto dto = new ArticleDto();
+        dto.setId(article.getId());
+        dto.setTitle(article.getTitle());
+        dto.setViews(article.getViews());
+        dto.setCover(article.getCover());
+        dto.setContent(article.getContent());
+        dto.setDescription(article.getDescription());
+        dto.setAiSummary(article.getAiSummary());
+        dto.setCategory(article.getCategory());
+        dto.setAuthor(article.getAuthor());
+        
+        // 处理许可证
+        ArticleLicense articleLicense = article.getLicense();
+        if (articleLicense != null) {
+            dto.setLicense(articleLicense.getCode());
+            dto.setLicenseDescription(articleLicense.getDescription());
+        } else {
+            // 兼容旧数据，如果license是null，尝试使用默认许可证
+            ArticleLicense defaultLicense = ArticleLicense.CC_BY_NC_SA_4_0;
+            dto.setLicense(defaultLicense.getCode());
+            dto.setLicenseDescription(defaultLicense.getDescription());
+        }
+        
+        dto.setFileUrl(article.getFileUrl());
+        dto.setFilePath(article.getFilePath());
+        dto.setFileSize(article.getFileSize());
+        dto.setFileType(article.getFileType());
+        
+        // 设置新添加的字段
+        if (article.getStatus() != null) {
+            dto.setStatus(article.getStatus().name());
+        }
+        dto.setIsFeatured(article.getIsFeatured());
+        dto.setTags(article.getTags());
+        dto.setTagArray(article.getTagArray());
+        
+        dto.setCreatedAt(article.getCreatedAt());
+        dto.setUpdatedAt(article.getUpdatedAt());
+        
+        // 设置用户ID（如果用户不为null）
+        if (article.getUser() != null) {
+            dto.setUserId(article.getUser().getId());
+        }
+        
+        return dto;
+    }
+    
     // Getters and Setters
+    
     public Long getId() {
         return id;
     }
-
+    
     public void setId(Long id) {
         this.id = id;
     }
-
+    
     public String getTitle() {
         return title;
     }
-
+    
     public void setTitle(String title) {
         this.title = title;
     }
@@ -132,11 +123,11 @@ public class Article {
     public void setCover(String cover) {
         this.cover = cover;
     }
-
+    
     public String getContent() {
         return content;
     }
-
+    
     public void setContent(String content) {
         this.content = content;
     }
@@ -173,64 +164,59 @@ public class Article {
         this.author = author;
     }
     
-    public ArticleLicense getLicense() {
+    public String getLicense() {
         return license;
     }
     
-    public void setLicense(ArticleLicense license) {
+    public void setLicense(String license) {
         this.license = license;
     }
     
-    /**
-     * 获取许可证代码
-     */
-    @Transient
-    public String getLicenseCode() {
-        return license != null ? license.getCode() : null;
+    public String getLicenseDescription() {
+        return licenseDescription;
     }
     
-    // 接受字符串设置许可证，便于从前端接收数据
-    public void setLicenseCode(String licenseCode) {
-        this.license = ArticleLicense.fromCode(licenseCode);
+    public void setLicenseDescription(String licenseDescription) {
+        this.licenseDescription = licenseDescription;
     }
-
+    
     public String getFileUrl() {
         return fileUrl;
     }
-
+    
     public void setFileUrl(String fileUrl) {
         this.fileUrl = fileUrl;
     }
-
+    
     public String getFilePath() {
         return filePath;
     }
-
+    
     public void setFilePath(String filePath) {
         this.filePath = filePath;
     }
-
+    
     public Long getFileSize() {
         return fileSize;
     }
-
+    
     public void setFileSize(Long fileSize) {
         this.fileSize = fileSize;
     }
-
+    
     public String getFileType() {
         return fileType;
     }
-
+    
     public void setFileType(String fileType) {
         this.fileType = fileType;
     }
     
-    public ArticleStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(ArticleStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     
@@ -250,45 +236,35 @@ public class Article {
         this.tags = tags;
     }
     
-    // 获取标签数组
-    @Transient // 不映射到数据库字段
     public String[] getTagArray() {
-        if (tags == null || tags.isEmpty()) {
-            return new String[0];
-        }
-        return tags.split("\\\\");
+        return tagArray;
     }
     
-    // 设置标签数组
     public void setTagArray(String[] tagArray) {
-        if (tagArray == null || tagArray.length == 0) {
-            this.tags = null;
-            return;
-        }
-        this.tags = String.join("\\", tagArray);
+        this.tagArray = tagArray;
     }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
+    
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
+    
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
-
+    
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public Long getUserId() {
+        return userId;
+    }
+    
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 } 

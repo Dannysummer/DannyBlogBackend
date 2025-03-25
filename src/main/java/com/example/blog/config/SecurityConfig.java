@@ -75,7 +75,7 @@ public class SecurityConfig {
             })
             .authorizeHttpRequests(auth -> {
                 logger.info("配置URL访问权限...");
-                logger.info("设置以下路径允许匿名访问: /api/auth/*, /api/friend-links/*");
+                logger.info("设置以下路径允许匿名访问: /api/auth/*, /api/friend-links/*, /api/system/stats");
                 auth
                     .requestMatchers(
                         "/api/auth/login",
@@ -91,6 +91,7 @@ public class SecurityConfig {
                         "/api/bullet-chats",
                         "/api/bullet-chats/{id}",
                         "/api/bullet-chats/status/**",
+                        "/api/system/stats",
                         "/error"
                     ).permitAll()
                     .requestMatchers(

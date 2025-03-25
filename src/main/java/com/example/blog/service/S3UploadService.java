@@ -65,23 +65,27 @@ public class S3UploadService {
     @Value("${app.image.custom-domain:}")
     private String customDomain;
     
-    @Autowired
+    // @Autowired
     // private SimpMessagingTemplate messagingTemplate;
     
     /**
      * 获取上传策略和临时凭证
-     * @param scope 上传范围
+     * @param path 上传路径，不包含bucket
      * @return 上传所需的信息
      */
-    public Map<String, Object> getUploadPolicy(String scope) {
+    public Map<String, Object> getUploadPolicy(String path) {
         try {
-            // 如果没有提供scope，生成一个默认的
-            if (scope == null || scope.isEmpty()) {
+            String scope;
+            // 如果没有提供path，生成一个默认的
+            if (path == null || path.isEmpty()) {
                 // 生成唯一文件名
                 String fileName = UUID.randomUUID().toString().replace("-", "") + ".jpg";
-                String filePath = "images/" + fileName;
-                scope = bucket + ":" + filePath;
+                path = "images/" + fileName;
             }
+            
+            // 始终确保使用正确的scope格式：bucket:path
+            scope = bucket + ":" + path;
+            logger.info("构建上传策略scope: {}", scope);
             
             // 构建多吉云临时令牌API请求路径
             String apiPath = "/auth/tmp_token.json";
@@ -112,8 +116,8 @@ public class S3UploadService {
             if (tokenData != null) {
                 // 准备返回给前端的数据
                 Map<String, Object> result = new HashMap<>();
-                result.put("fileName", scope.substring(scope.lastIndexOf(":") + 1));
-                result.put("path", scope.substring(scope.lastIndexOf(":") + 1));
+                result.put("fileName", path);
+                result.put("path", path);
                 result.put("bucket", bucket);
                 result.put("allowedTypes", allowedTypes);
                 result.put("maxFileSize", maxFileSize);
@@ -137,7 +141,7 @@ public class S3UploadService {
                     result.put("s3Endpoint", tokenData.get("s3Endpoint"));
                     
                     logger.info("成功获取上传策略，文件路径：{}，过期时间：{}", 
-                        scope.substring(scope.lastIndexOf(":") + 1), tokenData.get("expires"));
+                        path, tokenData.get("expires"));
                     
                     return result;
                 }
@@ -156,9 +160,35 @@ public class S3UploadService {
      * @return 上传结果，包含文件URL
      */
     public Map<String, Object> uploadFile(MultipartFile file) {
+        return uploadFile(file, null);
+    }
+    
+    /**
+     * 使用S3 SDK直接上传文件，支持自定义路径
+     * @param file 要上传的文件
+     * @param params 额外参数，可以包含自定义路径等信息
+     * @return 上传结果，包含文件URL
+     */
+    public Map<String, Object> uploadFile(MultipartFile file, Map<String, Object> params) {
         try {
-            // 获取临时凭证
-            Map<String, Object> policy = getUploadPolicy(null);
+            // 确定文件路径
+            String filePath;
+            if (params != null && params.containsKey("path")) {
+                filePath = (String) params.get("path");
+                logger.info("使用自定义路径上传文件: {}", filePath);
+            } else {
+                // 生成默认路径
+                String originalFilename = file.getOriginalFilename();
+                String fileExtension = originalFilename != null && originalFilename.contains(".") 
+                    ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
+                    : "";
+                String fileName = UUID.randomUUID().toString().replace("-", "") + fileExtension;
+                filePath = "images/" + fileName;
+                logger.info("使用生成的默认路径: {}", filePath);
+            }
+            
+            // 获取临时凭证 - 直接传递filePath，不需要构建scope
+            Map<String, Object> policy = getUploadPolicy(filePath);
             Map<String, Object> credentials = (Map<String, Object>) policy.get("credentials");
             
             if (credentials == null) {
@@ -205,7 +235,6 @@ public class S3UploadService {
                 .build();
                 
             // 构建文件上传请求
-            String filePath = (String) policy.get("path");
             PutObjectRequest putOb = PutObjectRequest.builder()
                 .bucket(s3Bucket)
                 .key(filePath)
@@ -241,7 +270,7 @@ public class S3UploadService {
             }
             logger.info("生成的文件URL: {}", fileUrl);
             result.put("url", fileUrl);
-            result.put("filename", policy.get("fileName"));
+            result.put("filename", file.getOriginalFilename());
             result.put("size", file.getSize());
             result.put("path", filePath);
             
@@ -338,7 +367,9 @@ public class S3UploadService {
      */
     private Map<String, Object> getDeletePolicy(String filePath) {
         try {
+            // 确保使用正确的scope格式：bucket:filePath
             String scope = bucket + ":" + filePath;
+            logger.info("构建删除策略scope: {}", scope);
             
             // 构建多吉云临时令牌API请求路径
             String apiPath = "/auth/tmp_token.json";
@@ -493,18 +524,38 @@ public class S3UploadService {
      * @throws IOException 如果上传失败
      */
     public Map<String, Object> uploadFileWithProgress(MultipartFile file, UploadProgressListener progressListener) throws IOException {
+        return uploadFileWithProgress(file, progressListener, null);
+    }
+    
+    /**
+     * 上传文件并跟踪进度，支持自定义路径
+     * 
+     * @param file 要上传的文件
+     * @param progressListener 进度监听器
+     * @param params 额外参数，可以包含自定义路径等信息
+     * @return 上传后的文件信息
+     * @throws IOException 如果上传失败
+     */
+    public Map<String, Object> uploadFileWithProgress(MultipartFile file, UploadProgressListener progressListener, Map<String, Object> params) throws IOException {
         try {
-            // 生成唯一文件名
-            String originalFilename = file.getOriginalFilename();
-            String fileExtension = originalFilename != null && originalFilename.contains(".") 
-                ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
-                : "";
-            String fileName = UUID.randomUUID().toString().replace("-", "") + fileExtension;
-            String filePath = "images/" + fileName;
-            String scope = bucket + ":" + filePath;
+            // 获取自定义路径，如果提供的话
+            String filePath;
+            if (params != null && params.containsKey("path")) {
+                filePath = (String) params.get("path");
+                logger.info("使用自定义路径上传文件: {}", filePath);
+            } else {
+                // 生成唯一文件名
+                String originalFilename = file.getOriginalFilename();
+                String fileExtension = originalFilename != null && originalFilename.contains(".") 
+                    ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
+                    : "";
+                String fileName = UUID.randomUUID().toString().replace("-", "") + fileExtension;
+                filePath = "images/" + fileName;
+                logger.info("使用生成的默认路径: {}", filePath);
+            }
             
-            // 获取上传策略
-            Map<String, Object> policy = getUploadPolicy(scope);
+            // 获取上传策略 - 直接传递filePath，不需要构建scope
+            Map<String, Object> policy = getUploadPolicy(filePath);
             if (policy == null) {
                 throw new IOException("获取上传策略失败");
             }
@@ -551,7 +602,7 @@ public class S3UploadService {
                 .build();
                 
             // 将MultipartFile转换为File以便进行进度跟踪
-            File tempFile = File.createTempFile("upload_", fileExtension);
+            File tempFile = File.createTempFile("upload_", getFileExtension(file.getOriginalFilename()));
             try {
                 file.transferTo(tempFile);
                 
@@ -649,6 +700,16 @@ public class S3UploadService {
             }
             throw new IOException("文件上传失败: " + e.getMessage(), e);
         }
+    }
+    
+    /**
+     * 从文件名获取扩展名
+     */
+    private String getFileExtension(String filename) {
+        if (filename == null || filename.isEmpty() || !filename.contains(".")) {
+            return ".tmp";
+        }
+        return filename.substring(filename.lastIndexOf("."));
     }
     
     /**

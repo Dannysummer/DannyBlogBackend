@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseCookie;
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
+import jakarta.servlet.http.Cookie;
 
 @RestController
 @RequestMapping(value = "/api/auth", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -134,22 +136,33 @@ public class AuthController {
     
     // 私有方法处理登录逻辑
     private ResponseEntity<?> handleLogin(LoginRequest request, HttpServletResponse response) {
-        ApiResponse<?> apiResponse = authService.login(request);
+        // 调用认证服务进行登录
+        ApiResponse<?> result = authService.login(request);
         
-        if (apiResponse.isSuccess() && apiResponse.getToken() != null) {
-            ResponseCookie cookie = ResponseCookie.from("token", apiResponse.getToken())
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("Strict")
-                    .maxAge(5400)
-                    .path("/")
-                    .build();
+        if (result.isSuccess()) {
+            // 从返回的数据中获取token
+            Map<String, Object> userData = (Map<String, Object>) result.getData();
+            String token = (String) userData.get("token");
             
-            response.addHeader("Set-Cookie", cookie.toString());
-            apiResponse.setToken(null);
+            // 创建Cookie
+            Cookie cookie = new Cookie("token", token);
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(86400); // 24小时
+            
+            // 在开发环境中可以这样设置，生产环境应该设置为true
+            // cookie.setSecure(true);
+            
+            // 将Cookie添加到响应中
+            response.addCookie(cookie);
+            
+            logger.info("用户登录成功，已设置token cookie: username={}", request.getUsername());
+        } else {
+            logger.warn("用户登录失败: username={}, message={}", 
+                    request.getUsername(), result.getMessage());
         }
         
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.ok(result);
     }
     
     @PostMapping(value = "/reset-password", consumes = MediaType.APPLICATION_JSON_VALUE)
