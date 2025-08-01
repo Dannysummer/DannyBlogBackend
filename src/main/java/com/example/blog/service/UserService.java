@@ -93,6 +93,68 @@ public class UserService {
     }
     
     /**
+     * 验证用户是否有权限访问指定ID的用户信息
+     * 
+     * @param username 当前用户名
+     * @param targetId 目标用户ID
+     * @return 验证结果
+     */
+    public ApiResponse<Map<String, Object>> validateUserAccess(String username, Long targetId) {
+        try {
+            // 获取当前用户
+            User currentUser = userRepository.findByUsername(username);
+            if (currentUser == null) {
+                return ApiResponse.error("当前用户不存在");
+            }
+            
+            // 获取目标用户
+            Optional<User> targetUserOpt = userRepository.findById(targetId);
+            if (!targetUserOpt.isPresent()) {
+                return ApiResponse.error("目标用户不存在");
+            }
+            
+            User targetUser = targetUserOpt.get();
+            
+            // 验证用户ID和用户名是否匹配
+            // 普通用户只能访问自己的信息，管理员可以访问所有用户信息
+            if (!currentUser.getId().equals(targetId) && !"ADMIN".equals(currentUser.getRole())) {
+                logger.warn("权限验证失败: username={}, id={}, targetId={}", username, currentUser.getId(), targetId);
+                return ApiResponse.error("您无权访问该用户信息");
+            }
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("currentUserId", currentUser.getId());
+            result.put("targetUserId", targetId);
+            result.put("isAdmin", "ADMIN".equals(currentUser.getRole()));
+            
+            return ApiResponse.success(result);
+        } catch (Exception e) {
+            logger.error("验证用户访问权限失败", e);
+            return ApiResponse.error("验证用户访问权限失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 通过用户名获取用户详情
+     */
+    public ApiResponse<UserDto> getUserByUsername(String username) {
+        try {
+            User user = userRepository.findByUsername(username);
+            if (user != null) {
+                UserDto userDto = convertToDto(user);
+                // 出于安全考虑，移除敏感字段
+                userDto.setPassword(null);
+                return ApiResponse.success(userDto);
+            } else {
+                return ApiResponse.error("用户不存在：" + username);
+            }
+        } catch (Exception e) {
+            logger.error("获取用户详情失败", e);
+            return ApiResponse.error("获取用户详情失败：" + e.getMessage());
+        }
+    }
+    
+    /**
      * 创建用户
      */
     @Transactional
@@ -325,6 +387,7 @@ public class UserService {
         dto.setUpdateTime(user.getUpdateTime());
         dto.setLastLoginTime(user.getLastLoginTime());
         dto.setUpdatedBy(user.getUpdatedBy());
+        dto.setRank(user.getRank());
         return dto;
     }
 } 

@@ -23,13 +23,12 @@ public class FriendLink {
     
     private String delay;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "category", length = 20)
     @Convert(converter = FriendCategoryConverter.class)
-    private FriendCategory category;
+    @Column(name = "category", length = 20)
+    private FriendCategory category = FriendCategory.FRIEND;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private FriendLinkStatus status = FriendLinkStatus.PENDING;
-} 
+}
 

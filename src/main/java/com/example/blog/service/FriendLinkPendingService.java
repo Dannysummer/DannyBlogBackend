@@ -76,9 +76,8 @@ public class FriendLinkPendingService {
         // 保存到正式友链表
         FriendLink savedLink = friendLinkRepository.save(friendLink);
 
-        // 更新状态为已通过
-        pendingLink.setStatus(FriendLinkPendingStatus.PASSED);
-        friendLinkPendingRepository.save(pendingLink);
+        // 审核通过后，直接从待审核表中删除记录
+        friendLinkPendingRepository.deleteById(id);
 
         return savedLink;
     }
@@ -92,8 +91,7 @@ public class FriendLinkPendingService {
             throw new IllegalArgumentException("该友链申请已经被处理过了");
         }
 
-        // 更新状态为已拒绝
-        pendingLink.setStatus(FriendLinkPendingStatus.DENIED);
-        friendLinkPendingRepository.save(pendingLink);
+        // 拒绝后也删除记录，保持表的整洁
+        friendLinkPendingRepository.deleteById(id);
     }
 } 

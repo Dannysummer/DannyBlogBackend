@@ -21,4 +21,5 @@ public class UserDto {
     private LocalDateTime updateTime;
     private LocalDateTime lastLoginTime;
     private String updatedBy;
+    private Long rank; // 用户注册排名
 } 

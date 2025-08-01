@@ -5,7 +5,10 @@ import com.example.blog.enums.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -16,4 +19,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findByUsernameContaining(String username, Pageable pageable);
     Page<User> findByStatus(UserStatus status, Pageable pageable);
     Page<User> findByUsernameContainingAndStatus(String username, UserStatus status, Pageable pageable);
+    
+    /**
+     * 查询所有用户并按照创建时间升序排序
+     */
+    List<User> findAllByOrderByCreateTimeAsc();
+    
+    /**
+     * 查询所有正常用户并按照创建时间升序排序
+     */
+    List<User> findByStatusOrderByCreateTimeAsc(UserStatus status);
 } 

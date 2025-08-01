@@ -83,10 +83,6 @@ public class FriendLinkService {
         // 保存到已审核友链表
         friendLinkRepository.save(approvedLink);
         
-        // 更新待审核友链状态为已通过
-        pending.setStatus(FriendLinkPendingStatus.PASSED);
-        friendLinkPendingRepository.save(pending);
-        
         // 发送通过通知邮件
         try {
             String emailContent = String.format(
@@ -103,6 +99,9 @@ public class FriendLinkService {
         }
         
         logger.info("友链审核通过：id={}, name={}, email={}", id, pending.getName(), pending.getPendingEmail());
+        
+        // 审核通过后，从待审核表中删除记录
+        friendLinkPendingRepository.deleteById(id);
     }
     
     @Transactional
@@ -110,10 +109,6 @@ public class FriendLinkService {
         FriendLinkPending pending = friendLinkPendingRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("待审核友链不存在"));
             
-        // 更新状态为已拒绝
-        pending.setStatus(FriendLinkPendingStatus.DENIED);
-        friendLinkPendingRepository.save(pending);
-        
         // 发送拒绝通知邮件
         try {
             String emailContent = String.format(
@@ -132,23 +127,8 @@ public class FriendLinkService {
         }
         
         logger.info("友链审核拒绝：id={}, name={}, email={}", id, pending.getName(), pending.getPendingEmail());
-    }
-    
-    public FriendLinkPending savePendingFriendLink(FriendLinkPending friendLinkPending) {
-        logger.info("保存新的友链申请：{}", friendLinkPending.getName());
         
-        // 检查URL是否已经在正式友链中
-        if (friendLinkRepository.existsByUrl(friendLinkPending.getUrl())) {
-            throw new IllegalArgumentException("该网站已经是我的友链了哦");
-        }
-        
-        // 检查URL是否已经在待审核友链中
-        if (friendLinkPendingRepository.existsByUrl(friendLinkPending.getUrl())) {
-            throw new IllegalArgumentException("该网站已经提交过申请，请耐心等待审核");
-        }
-        
-        // 确保状态为 PENDING
-        friendLinkPending.setStatus(FriendLinkPendingStatus.PENDING);
-        return friendLinkPendingRepository.save(friendLinkPending);
+        // 拒绝后也删除记录，保持表的整洁
+        friendLinkPendingRepository.deleteById(id);
     }
 } 

@@ -4,13 +4,15 @@ import com.example.blog.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.GenericGenerator;
 
 @Data
 @Entity
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "snowflake")
+    @GenericGenerator(name = "snowflake", strategy = "com.example.blog.config.SnowflakeIdGeneratorStrategy")
     private Long id;
     
     @Column(unique = true)
@@ -47,6 +49,10 @@ public class User {
     private String updatedBy;
     
     private String remark;
+    
+    // 用户注册排名
+    @Column(name = "`rank`")
+    private Long rank;
     
     @PrePersist
     public void prePersist() {

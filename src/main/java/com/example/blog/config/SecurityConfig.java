@@ -88,17 +88,39 @@ public class SecurityConfig {
                         "/api/friend-links",
                         "/api/friend-links/all",
                         "/api/friend-links/category/**",
+                        "/api/friend-links-pending/apply",  // 友链申请允许所有人访问
                         "/api/bullet-chats",
                         "/api/bullet-chats/{id}",
                         "/api/bullet-chats/status/**",
                         "/api/system/stats",
+                        "/api/statistics",
+                        "/api/articles/latest",
+                        "/api/articles/heatmap",
+                        "/api/articles/recent",
+                        "/api/articles/archive",
+                        "/api/articles/published",
+                        "/api/articles/*/related",
+                        "/api/articles/*/navigation",
+                        "/api/articles",
+                        "/api/article/*/content",
+                        "/api/article/details/*",
+                        "/api/tags",
+                        "/api/progress",
                         "/error"
                     ).permitAll()
                     .requestMatchers(
-                        "/api/friend-links-pending",
-                        "/api/friend-links-pending/**",
-                        "/api/bullet-chats/{id}/**"
+                        "/api/friend-links-pending",       // 获取待审核友链（管理员）
+                        "/api/friend-links-pending/*/approve",  // 审核通过（管理员）
+                        "/api/friend-links-pending/*/reject",   // 审核拒绝（管理员）
+                        "/api/bullet-chats/{id}/**",
+                        "/api/admin/**"
                     ).hasRole("ADMIN")
+                    .requestMatchers(
+                        "/api/article/my",
+                        "/api/article/list",
+                        "/api/article/list/**",
+                        "/api/article/draft"
+                    ).authenticated()
                     .anyRequest().authenticated();
             })
             .exceptionHandling(exceptions -> {

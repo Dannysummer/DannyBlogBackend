@@ -134,8 +134,12 @@ public class AuthService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setEmail(request.getEmail());
             
+            // 计算用户排名
+            Long userCount = userRepository.count();
+            user.setRank(userCount + 1);
+            
             User savedUser = userRepository.save(user);
-            logger.info("用户注册成功: id={}, username={}", savedUser.getId(), savedUser.getUsername());
+            logger.info("用户注册成功: id={}, username={}, rank={}", savedUser.getId(), savedUser.getUsername(), savedUser.getRank());
             
             // 注册成功后删除验证码
             emailVerificationCodes.remove(request.getEmail());

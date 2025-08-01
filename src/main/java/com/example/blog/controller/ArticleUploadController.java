@@ -36,7 +36,7 @@ import java.io.File;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/article")
+@RequestMapping("/api/upload")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class ArticleUploadController {
     
@@ -380,7 +380,6 @@ public class ArticleUploadController {
     /**
      * 获取单篇文章信息
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> getArticle(@PathVariable("id") Long id) {
         try {
@@ -388,19 +387,53 @@ public class ArticleUploadController {
             Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("文章不存在: " + id));
             
-            // 获取当前用户
+            // 检查访问权限
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username);
+            boolean isAuthenticated = authentication != null && 
+                !authentication.getName().equals("anonymousUser");
             
-            // 确保只能查看自己的文章（如需公开文章，可以修改此处逻辑）
-            if (user == null || !article.getUser().getId().equals(user.getId())) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("无权查看此文章"));
+            if (article.getStatus() == ArticleStatus.PUBLISHED) {
+                // 已发布的文章允许公开访问
+                // 增加访问量
+                article.setViews(article.getViews() + 1);
+                articleRepository.save(article);
+                
+                // 为了兼容前端期望的字段名，返回特定格式
+                Map<String, Object> articleData = new HashMap<>();
+                articleData.put("id", article.getId());
+                articleData.put("title", article.getTitle());
+                articleData.put("content", article.getContent() != null ? article.getContent() : "");
+                articleData.put("status", article.getStatus().name());
+                articleData.put("createTime", article.getCreatedAt());
+                articleData.put("updateTime", article.getUpdatedAt());
+                articleData.put("views", article.getViews());
+                articleData.put("coverImage", article.getCover() != null ? article.getCover() : "");
+                articleData.put("category", article.getCategory() != null ? article.getCategory() : "");
+                articleData.put("tags", article.getTagArray() != null ? article.getTagArray() : new String[0]);
+                articleData.put("author", article.getAuthor() != null ? article.getAuthor() : "");
+                articleData.put("license", article.getLicense() != null ? article.getLicense().getCode() : "");
+                articleData.put("allowComments", true);
+                articleData.put("sticky", article.getIsFeatured() != null ? article.getIsFeatured() : false);
+                articleData.put("comments", 0); // 暂时返回0，后续可以从评论服务获取
+                
+                return ResponseEntity.ok(ApiResponse.success(articleData));
+            } else {
+                // 未发布的文章需要认证，且只能查看自己的文章
+                if (!isAuthenticated) {
+                    return ResponseEntity.notFound().build();
+                }
+                
+                String username = authentication.getName();
+                User user = userRepository.findByUsername(username);
+                
+                if (user == null || !article.getUser().getId().equals(user.getId())) {
+                    return ResponseEntity.notFound().build();
+                }
+                
+                // 使用DTO返回数据，避免重复字段
+                ArticleDto articleDto = ArticleDto.fromEntity(article);
+                return ResponseEntity.ok(ApiResponse.success(articleDto));
             }
-            
-            // 使用DTO返回数据，避免重复字段
-            ArticleDto articleDto = ArticleDto.fromEntity(article);
-            return ResponseEntity.ok(ApiResponse.success(articleDto));
         } catch (Exception e) {
             logger.error("获取文章失败: id={}", id, e);
             return ResponseEntity.badRequest().body(ApiResponse.error("获取文章失败：" + e.getMessage()));
@@ -410,7 +443,6 @@ public class ArticleUploadController {
     /**
      * 获取文章内容（代理请求以避免CORS问题）
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/content/{id}")
     public ResponseEntity<?> getArticleContent(@PathVariable("id") Long id) {
         try {
@@ -418,41 +450,56 @@ public class ArticleUploadController {
             Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("文章不存在: " + id));
             
-            // 获取当前用户
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username);
-            
-            // 确保只能查看自己的文章（如需公开文章，可以修改此处逻辑）
-            if (user == null || !article.getUser().getId().equals(user.getId())) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("无权查看此文章"));
+            // 检查文章是否已发布（公开访问只能查看已发布的文章）
+            if (article.getStatus() != ArticleStatus.PUBLISHED) {
+                return ResponseEntity.notFound().build();
             }
+            
+            // 增加访问量
+            article.setViews(article.getViews() + 1);
+            articleRepository.save(article);
             
             // 读取文件内容
             String fileUrl = article.getFileUrl();
-            logger.info("准备从URL获取文章内容: {}", fileUrl);
-            
-            // 使用Spring的RestTemplate代理请求
-            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
-            
-            // 配置RestTemplate使用UTF-8编码
-            org.springframework.http.converter.StringHttpMessageConverter converter = 
-                new org.springframework.http.converter.StringHttpMessageConverter(
-                    java.nio.charset.StandardCharsets.UTF_8);
-            restTemplate.getMessageConverters().set(1, converter);
+            logger.info("准备获取文章内容: fileUrl={}", fileUrl);
             
             String markdownContent;
-            try {
-                markdownContent = restTemplate.getForObject(fileUrl, String.class);
-                // 更新内容字段（可选）
-                if (markdownContent != null && (article.getContent() == null || article.getContent().isEmpty())) {
-                    article.setContent(markdownContent);
-                    articleRepository.save(article);
-                    logger.info("已更新文章[{}]的内容字段", id);
+            
+            // 如果是草稿文章或文件URL无效，直接使用数据库中的内容
+            if (fileUrl == null || fileUrl.startsWith("draft://")) {
+                markdownContent = article.getContent();
+                if (markdownContent == null || markdownContent.isEmpty()) {
+                    logger.error("数据库中没有文章内容: id={}", id);
+                    return ResponseEntity.badRequest().body(ApiResponse.error("文章内容不可用"));
                 }
-            } catch (Exception e) {
-                logger.error("获取文章内容失败: {}", e.getMessage(), e);
-                return ResponseEntity.badRequest().body(ApiResponse.error("获取文章内容失败: " + e.getMessage()));
+            } else {
+                // 尝试从S3获取内容
+                // 使用Spring的RestTemplate代理请求
+                org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+                
+                // 配置RestTemplate使用UTF-8编码
+                org.springframework.http.converter.StringHttpMessageConverter converter = 
+                    new org.springframework.http.converter.StringHttpMessageConverter(
+                        java.nio.charset.StandardCharsets.UTF_8);
+                restTemplate.getMessageConverters().set(1, converter);
+                
+                try {
+                    markdownContent = restTemplate.getForObject(fileUrl, String.class);
+                    // 更新内容字段（可选）
+                    if (markdownContent != null && (article.getContent() == null || article.getContent().isEmpty())) {
+                        article.setContent(markdownContent);
+                        articleRepository.save(article);
+                        logger.info("已更新文章[{}]的内容字段", id);
+                    }
+                } catch (Exception e) {
+                    logger.warn("从S3获取文章内容失败，尝试使用数据库内容: {}", e.getMessage());
+                    // 如果从S3获取失败，使用数据库中的内容作为备用
+                    markdownContent = article.getContent();
+                    if (markdownContent == null || markdownContent.isEmpty()) {
+                        logger.error("数据库中也没有文章内容: id={}", id);
+                        return ResponseEntity.badRequest().body(ApiResponse.error("文章内容不可用"));
+                    }
+                }
             }
             
             // 不使用ApiResponse包装，直接返回Markdown内容

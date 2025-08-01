@@ -22,14 +22,16 @@ public enum FriendCategory {
 
     @JsonCreator
     public static FriendCategory fromString(String value) {
-        if (value == null) {
-            return null;
+        if (value == null || value.trim().isEmpty()) {
+            return FRIEND;  // 空值时使用默认值
         }
+        // 去除前后空格
+        value = value.trim();
         for (FriendCategory category : FriendCategory.values()) {
             if (category.value.equalsIgnoreCase(value)) {
                 return category;
             }
         }
-        return null;
+        return FRIEND;  // 无法匹配时使用默认值
     }
-} 
+}

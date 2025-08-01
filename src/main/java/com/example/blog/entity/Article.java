@@ -2,11 +2,14 @@ package com.example.blog.entity;
 
 import com.example.blog.enums.ArticleLicense;
 import com.example.blog.enums.ArticleStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "articles")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Article {
 
     @Id
@@ -92,6 +95,7 @@ public class Article {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "email", "role", "createdAt", "updatedAt"})
     private User user;
     
     @Column(name = "created_at", nullable = false)
@@ -291,4 +295,4 @@ public class Article {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-} 
+}

@@ -2,8 +2,11 @@ package com.example.blog.controller;
 
 import com.example.blog.dto.ApiResponse;
 import com.example.blog.dto.UserDto;
+import com.example.blog.dto.PagedResponse;
+import com.example.blog.dto.ArticleDto;
 import com.example.blog.enums.UserStatus;
 import com.example.blog.service.UserService;
+import com.example.blog.service.ArticleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,35 @@ public class AdminController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private ArticleService articleService;
+    
+    /**
+     * 获取所有文章列表（管理员）
+     */
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/articles")
+    public ResponseEntity<ApiResponse<PagedResponse<ArticleDto>>> getAllArticles(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String keyword) {
+        
+        logger.info("管理员获取文章列表请求: page={}, limit={}, status={}, author={}, keyword={}", 
+                   page, limit, status, author, keyword);
+        
+        try {
+            PagedResponse<ArticleDto> articles = articleService.getAllArticlesForAdmin(
+                page, limit, status, author, keyword);
+            
+            return ResponseEntity.ok(ApiResponse.success(articles));
+        } catch (Exception e) {
+            logger.error("管理员获取文章列表失败", e);
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取文章列表失败：" + e.getMessage()));
+        }
+    }
     
     /**
      * 获取用户列表

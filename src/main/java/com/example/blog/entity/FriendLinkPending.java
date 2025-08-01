@@ -2,6 +2,10 @@ package com.example.blog.entity;
 
 import lombok.Data;
 import jakarta.persistence.*;
+import jakarta.persistence.Transient;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @Entity
@@ -23,7 +27,8 @@ public class FriendLinkPending {
     
     private String delay;
 
-    @Column(nullable = false)
+    @Column(name = "pending_email", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonProperty("email")
     private String pendingEmail;
 
     @Column(nullable = false)
@@ -32,5 +37,16 @@ public class FriendLinkPending {
     
     @Column(name = "category", length = 20)
     @Convert(converter = FriendCategoryConverter.class)
-    private FriendCategory category;
-} 
+    private FriendCategory category = FriendCategory.FRIEND;
+    
+    @com.fasterxml.jackson.annotation.JsonSetter("category")
+    public void setCategoryFromJson(Object categoryValue) {
+        if (categoryValue instanceof String) {
+            this.category = FriendCategory.fromString((String) categoryValue);
+        } else if (categoryValue instanceof FriendCategory) {
+            this.category = (FriendCategory) categoryValue;
+        } else {
+            this.category = FriendCategory.FRIEND;
+        }
+    }
+}
