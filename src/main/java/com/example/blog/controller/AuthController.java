@@ -24,21 +24,9 @@ public class AuthController {
     @Autowired
     private AuthService authService;
     
-    // Form Data 登录
-    @PostMapping(value = "/login", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> loginForm(
-            @RequestParam String username,
-            @RequestParam String password,
-            HttpServletResponse response) {
-        LoginRequest request = new LoginRequest();
-        request.setUsername(username);
-        request.setPassword(password);
-        return handleLogin(request, response);
-    }
-    
-    // JSON 登录
+    // 统一登录接口，支持JSON格式
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> loginJson(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         return handleLogin(request, response);
     }
     

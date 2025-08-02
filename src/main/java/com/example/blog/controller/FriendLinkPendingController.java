@@ -127,10 +127,16 @@ public class FriendLinkPendingController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/pending/{id}/approve")
-    public ResponseEntity<ApiResponse<?>> approveFriendLink(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<?>> approveFriendLink(@PathVariable Long id, @RequestBody String rawJson) {
         try {
             logger.info("审核通过友链申请：id={}", id);
-            FriendLink approvedLink = friendLinkPendingService.approveFriendLink(id);
+            logger.info("收到的请求体：{}", rawJson);
+            
+            // 解析请求体，获取category等信息
+            FriendLinkPending updateData = objectMapper.readValue(rawJson, FriendLinkPending.class);
+            logger.info("解析后的category：{}", updateData.getCategory());
+            
+            FriendLink approvedLink = friendLinkPendingService.approveFriendLink(id, updateData);
             logger.info("友链申请审核通过：id={}", id);
             return ResponseEntity.ok(ApiResponse.success(approvedLink));
         } catch (Exception e) {

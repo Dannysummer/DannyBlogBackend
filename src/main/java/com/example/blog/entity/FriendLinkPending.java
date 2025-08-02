@@ -37,16 +37,6 @@ public class FriendLinkPending {
     
     @Column(name = "category", length = 20)
     @Convert(converter = FriendCategoryConverter.class)
+    @JsonProperty("category")
     private FriendCategory category = FriendCategory.FRIEND;
-    
-    @com.fasterxml.jackson.annotation.JsonSetter("category")
-    public void setCategoryFromJson(Object categoryValue) {
-        if (categoryValue instanceof String) {
-            this.category = FriendCategory.fromString((String) categoryValue);
-        } else if (categoryValue instanceof FriendCategory) {
-            this.category = (FriendCategory) categoryValue;
-        } else {
-            this.category = FriendCategory.FRIEND;
-        }
-    }
 }

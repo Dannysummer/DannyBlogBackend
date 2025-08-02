@@ -32,29 +32,16 @@ public class RequestLoggingFilter implements Filter {
             logger.info("Header {}: {}", headerName, httpRequest.getHeader(headerName));
         });
         
-        // 记录请求体
+        // 记录请求体（仅记录，不消耗InputStream）
         if ("POST".equalsIgnoreCase(httpRequest.getMethod()) || "PUT".equalsIgnoreCase(httpRequest.getMethod())) {
-            // 读取JSON格式的请求体
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(httpRequest.getInputStream(), StandardCharsets.UTF_8));
-                StringBuilder requestBody = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    requestBody.append(line);
-                }
-                
-                if (requestBody.length() > 0) {
-                    logger.info("请求体内容: {}", requestBody.toString());
-                } else {
-                    logger.info("请求体为空");
-                }
-            } catch (Exception e) {
-                logger.error("读取请求体失败: {}", e.getMessage());
-            }
+            // 对于POST/PUT请求，只记录请求信息，不读取请求体，避免消耗InputStream
+            logger.info("POST/PUT请求，跳过请求体读取以避免消耗InputStream");
+            chain.doFilter(request, response);
+        } else {
+            // 非POST/PUT请求直接传递
+            chain.doFilter(request, response);
         }
         
         logger.info("=== 请求结束 ===");
-        
-        chain.doFilter(request, response);
     }
 }

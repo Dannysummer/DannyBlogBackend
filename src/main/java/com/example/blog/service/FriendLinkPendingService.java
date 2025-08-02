@@ -55,12 +55,20 @@ public class FriendLinkPendingService {
     }
 
     @Transactional
-    public FriendLink approveFriendLink(Long id) {
+    public FriendLink approveFriendLink(Long id, FriendLinkPending updateData) {
         FriendLinkPending pendingLink = friendLinkPendingRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("找不到该友链申请"));
 
         if (pendingLink.getStatus() != FriendLinkPendingStatus.PENDING) {
             throw new IllegalArgumentException("该友链申请已经被处理过了");
+        }
+
+        // 更新category字段
+        if (updateData.getCategory() != null) {
+            pendingLink.setCategory(updateData.getCategory());
+            // 保存更新后的数据
+            friendLinkPendingRepository.save(pendingLink);
+            System.out.println("DEBUG: 更新后的category = " + pendingLink.getCategory());
         }
 
         // 创建新的FriendLink对象
