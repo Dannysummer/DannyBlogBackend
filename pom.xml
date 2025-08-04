@@ -27,8 +27,8 @@
             <url>https://jitpack.io</url>
         </repository>
         <repository>
-            <id>aws-sdk-preview</id>
-            <url>https://d2jrmag20t5vke.cloudfront.net</url>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2/</url>
         </repository>
     </repositories>
 
@@ -175,7 +175,16 @@
             <groupId>com.github.oshi</groupId>
             <artifactId>oshi-core</artifactId>
             <version>6.4.0</version>
-        </dependency>
+        </dependency> 
+
+
+
+        <!-- JUnit 5 for testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>  
     </dependencies>
 
     <build>

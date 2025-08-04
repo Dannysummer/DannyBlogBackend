@@ -15,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.regex.Pattern;
+import com.example.blog.util.SecurityValidator;
 
 @RestController
 @RequestMapping("/api/friend-links")
@@ -22,6 +24,8 @@ import java.util.List;
 public class FriendLinkPendingController {
     
     private static final Logger logger = LoggerFactory.getLogger(FriendLinkPendingController.class);
+    
+
     
     @Autowired
     private FriendLinkPendingService friendLinkPendingService;
@@ -36,9 +40,46 @@ public class FriendLinkPendingController {
         logger.info("原始请求体: {}", rawJson);
         
         try {
+            // 首先进行安全验证
+            if (!SecurityValidator.isValidJson(rawJson)) {
+                logger.warn("检测到恶意内容，拒绝友链申请: {}", rawJson);
+                return ResponseEntity.badRequest().body(ApiResponse.error("输入内容包含潜在的安全风险，请检查后重试"));
+            }
+            
             // 手动解析JSON
             FriendLinkPending friendLinkPending = objectMapper.readValue(rawJson, FriendLinkPending.class);
             logger.info("解析后的对象: {}", friendLinkPending);
+            
+            // 对每个字段进行安全验证
+            if (!SecurityValidator.isValidInput(friendLinkPending.getName(), "博客名称")) {
+                logger.warn("友链申请验证失败: 博客名称包含恶意内容");
+                return ResponseEntity.badRequest().body(ApiResponse.error("博客名称包含潜在的安全风险"));
+            }
+            if (!SecurityValidator.isValidUrl(friendLinkPending.getUrl(), "博客地址")) {
+                logger.warn("友链申请验证失败: 博客地址包含恶意内容");
+                return ResponseEntity.badRequest().body(ApiResponse.error("博客地址包含潜在的安全风险"));
+            }
+            if (!SecurityValidator.isValidInput(friendLinkPending.getDescription(), "博客描述")) {
+                logger.warn("友链申请验证失败: 博客描述包含恶意内容");
+                return ResponseEntity.badRequest().body(ApiResponse.error("博客描述包含潜在的安全风险"));
+            }
+            if (!SecurityValidator.isValidInput(friendLinkPending.getPendingEmail(), "联系邮箱")) {
+                logger.warn("友链申请验证失败: 联系邮箱包含恶意内容");
+                return ResponseEntity.badRequest().body(ApiResponse.error("联系邮箱包含潜在的安全风险"));
+            }
+            if (friendLinkPending.getCategory() != null && !SecurityValidator.isValidInput(friendLinkPending.getCategory().name(), "分类")) {
+                logger.warn("友链申请验证失败: 分类包含恶意内容");
+                return ResponseEntity.badRequest().body(ApiResponse.error("分类包含潜在的安全风险"));
+            }
+            if (!SecurityValidator.isValidUrl(friendLinkPending.getAvatar(), "头像地址")) {
+                logger.warn("友链申请验证失败: 头像地址包含恶意内容");
+                return ResponseEntity.badRequest().body(ApiResponse.error("头像地址包含潜在的安全风险"));
+            }
+            if (!SecurityValidator.isValidUrl(friendLinkPending.getCover(), "封面地址")) {
+                logger.warn("友链申请验证失败: 封面地址包含恶意内容");
+                return ResponseEntity.badRequest().body(ApiResponse.error("封面地址包含潜在的安全风险"));
+            }
+            
             // 打印原始请求数据
             logger.info("=== 原始请求数据开始 ===");
             logger.info("友链申请原始JSON数据: {}", objectMapper.writeValueAsString(friendLinkPending));
@@ -74,7 +115,7 @@ public class FriendLinkPendingController {
             }
             
             // 验证邮箱格式
-            if (!isValidEmail(friendLinkPending.getPendingEmail())) {
+            if (!SecurityValidator.isValidEmail(friendLinkPending.getPendingEmail())) {
                 logger.warn("友链申请验证失败: 邮箱格式无效");
                 return ResponseEntity.badRequest().body(ApiResponse.error("请输入有效的邮箱地址"));
             }
@@ -103,13 +144,7 @@ public class FriendLinkPendingController {
         }
     }
     
-    /**
-     * 验证邮箱格式
-     */
-    private boolean isValidEmail(String email) {
-        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-        return email.matches(emailRegex);
-    }
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/pending")

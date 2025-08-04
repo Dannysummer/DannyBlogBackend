@@ -82,3 +82,9 @@ app:
   sensitive-word:
     enabled: true     # 是否启用敏感词过滤
     file-path: classpath:sensitive-words.txt  # 敏感词库文件路径
+
+# Algolia Search Configuration
+algolia:
+  app-id: YOUR_ALGOLIA_APP_ID
+  api-key: YOUR_ALGOLIA_API_KEY
+  index-name: articles

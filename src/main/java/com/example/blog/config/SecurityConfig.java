@@ -28,6 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import com.example.blog.filter.SqlInjectionFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -106,6 +107,11 @@ public class SecurityConfig {
                         "/api/article/details/*",
                         "/api/tags",
                         "/api/progress",
+                        "/api/comments",           // 评论列表
+                        "/api/comments/hot",       // 热门评论
+                        "/api/comments/stats",     // 评论统计
+                        "/api/comments/*/replies", // 评论回复
+                        "/api/comments/*/like",    // 点赞评论
                         "/error"
                     ).permitAll()
                     .requestMatchers(
@@ -131,7 +137,8 @@ public class SecurityConfig {
                 logger.info("配置会话管理为无状态...");
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
             })
-            .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new SqlInjectionFilter(), JwtAuthenticationFilter.class); // 添加SQL注入防护过滤器
         
         logger.info("安全过滤链配置完成");
         return http.build();

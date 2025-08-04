@@ -28,7 +28,7 @@ public class FriendLinkPending {
     private String delay;
 
     @Column(name = "pending_email", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonProperty("email")
+    @JsonProperty("pendingEmail")
     private String pendingEmail;
 
     @Column(nullable = false)
